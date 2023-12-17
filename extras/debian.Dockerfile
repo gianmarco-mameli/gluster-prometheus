@@ -1,9 +1,7 @@
 # Build stage
-FROM golang:1.12-stretch as build-env
+FROM golang:1.21 as build-env
 
-RUN mkdir -p /go/src/github.com/gluster/gluster-prometheus/
-
-WORKDIR /go/src/github.com/gluster/gluster-prometheus/
+WORKDIR /src
 
 RUN set -ex && \
         export DEBIAN_FRONTEND=noninteractive; \
@@ -11,14 +9,14 @@ RUN set -ex && \
 
 COPY . .
 
-RUN scripts/install-reqs.sh
-RUN PREFIX=/app make
-RUN PREFIX=/app make install
+RUN go mod download
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /app/sbin/gluster-exporter ./gluster-exporter
 
 # Create small image for running
-FROM debian:stretch-slim
+FROM debian:bookworm-slim
 
-ARG GLUSTER_VERSION=6
+ARG GLUSTER_VERSION=10
 
 # Install gluster cli for gluster-exporter
 RUN set -ex && \
