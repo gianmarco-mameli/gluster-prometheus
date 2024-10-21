@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.21 as build-env
+FROM golang:1.21 AS build-env
 
 WORKDIR /src
 
@@ -11,7 +11,7 @@ COPY . .
 
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /app/sbin/gluster-exporter ./gluster-exporter
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -installsuffix cgo -o /app/sbin/gluster-exporter ./gluster-exporter
 
 # Create small image for running
 FROM debian:bookworm-slim
