@@ -39,11 +39,15 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: false
           file: extras/debian.Dockerfile
+          outputs: out
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ env.VERSION }},
                 ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Hello world
+        run: ls -la
