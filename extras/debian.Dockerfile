@@ -30,4 +30,4 @@ WORKDIR /app
 
 COPY --from=build-env /app /app/
 
-ENTRYPOINT ["/app/sbin/gluster-exporter"]
+ENTRYPOINT ["/app/sbin/gluster-exporter", "/etc/gluster-exporter/gluster-exporter.toml"]
