@@ -2,8 +2,8 @@ name: build-push-release
 
 on:
   push:
-    tags:
-      - "*"
+    # tags:
+    #   - "*"
 
   workflow_dispatch:
 
@@ -13,9 +13,9 @@ env:
 jobs:
   build-push-release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        architecture: ["arm64", "amd64"]
+    # strategy:
+    #   matrix:
+    #     architecture: ["arm64", "amd64"]
     steps:
       - uses: actions/checkout@v4
 
@@ -41,7 +41,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/${{ matrix.architecture }}
+          platforms: linux/arm64, linux/amd64
           push: false
           file: extras/debian.Dockerfile
           outputs: out
@@ -52,23 +52,37 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+      # - name: Create Release
+      #   id: create_release
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ github.ref }}
+      #     release_name: Release ${{ github.ref }}
+      #     draft: false
+      #     prerelease: false
 
-      - name: Upload ${{ matrix.architecture }} artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./out/app/sbin/gluster-exporter
-          asset_name: gluster-exporter-${{ matrix.architecture }}
-          asset_content_type: application
+      - name: run
+        run: ls -la out && tree out
+
+      # - name: Upload ${{ matrix.architecture }} artifact
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./out/app/sbin/gluster-exporter
+      #     asset_name: gluster-exporter-${{ matrix.architecture }}
+      #     asset_content_type: application
+
+
+      #     - name: Upload ${{ matrix.architecture }} artifact
+      #     uses: actions/upload-release-asset@v1
+      #     env:
+      #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     with:
+      #       upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #       asset_path: ./out/app/sbin/gluster-exporter
+      #       asset_name: gluster-exporter-${{ matrix.architecture }}
+      #       asset_content_type: application
