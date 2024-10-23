@@ -2,8 +2,8 @@ name: build-push-release
 
 on:
   push:
-    # tags:
-    #   - "*"
+    tags:
+      - "*"
 
   workflow_dispatch:
 
@@ -16,6 +16,8 @@ jobs:
     # strategy:
     #   matrix:
     #     architecture: ["arm64", "amd64"]
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -52,20 +54,22 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
 
-      # - name: Create Release
-      #   id: create_release
-      #   uses: actions/create-release@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     tag_name: ${{ github.ref }}
-      #     release_name: Release ${{ github.ref }}
-      #     draft: false
-      #     prerelease: false
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
 
       # - name: run
       #   run: ls -la out && tree out
   upload-binaries:
+    needs: build-push
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -76,7 +80,7 @@ jobs:
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            upload_url: ${{ needs.build-push.outputs.upload_url }}
             asset_path: ./out/linux_${{ matrix.architecture }}/app/sbin/gluster-exporter
             asset_name: gluster-exporter-${{ matrix.architecture }}
             asset_content_type: application
