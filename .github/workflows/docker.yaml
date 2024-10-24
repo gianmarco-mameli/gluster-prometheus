@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        architecture: ["arm64", "amd64"]
+        architecture: [arm64, amd64]
     steps:
         - name: Upload ${{ matrix.architecture }} artifact
           uses: actions/upload-release-asset@v1
