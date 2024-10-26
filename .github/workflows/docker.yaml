@@ -66,8 +66,12 @@ jobs:
           draft: false
           prerelease: false
 
-      # - name: run
-      #   run: ls -la out && tree out
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: ./out/
+
   upload-binaries:
     needs: build-push
     runs-on: ubuntu-latest
@@ -75,13 +79,18 @@ jobs:
       matrix:
         architecture: [arm64, amd64]
     steps:
+        - name: Download math result for job 1
+          uses: actions/download-artifact@v4
+          with:
+            name: binaries
+
         - name: Upload ${{ matrix.architecture }} artifact
           uses: actions/upload-release-asset@v1
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           with:
             upload_url: ${{ needs.build-push.outputs.upload_url }}
-            asset_path: ./out/linux_${{ matrix.architecture }}/app/sbin/gluster-exporter
+            asset_path: binaries/linux_${{ matrix.architecture }}/app/sbin/gluster-exporter
             asset_name: gluster-exporter-${{ matrix.architecture }}
             asset_content_type: application
 
