@@ -13,9 +13,9 @@ env:
 jobs:
   build-push:
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     architecture: ["arm64", "amd64"]
+    strategy:
+      matrix:
+        architecture: [arm64, amd64]
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
@@ -43,7 +43,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/arm64, linux/amd64
+          platforms: linux/${{ matrix.architecture }}
           push: false
           file: extras/debian.Dockerfile
           outputs: out
@@ -57,7 +57,6 @@ jobs:
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -66,33 +65,34 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload binaries
-        uses: actions/upload-artifact@v4
+      - name: Upload ${{ matrix.architecture }} artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: binaries
-          path: ./out/
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./out/linux_${{ matrix.architecture }}/app/sbin/gluster-exporter
+          asset_name: gluster-exporter-${{ matrix.architecture }}
+          asset_content_type: application
 
-  upload-binaries:
-    needs: build-push
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        architecture: [arm64, amd64]
-    steps:
-        - name: Download math result for job 1
-          uses: actions/download-artifact@v4
-          with:
-            name: binaries
 
-        - name: Upload ${{ matrix.architecture }} artifact
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            upload_url: ${{ needs.build-push.outputs.upload_url }}
-            asset_path: binaries/linux_${{ matrix.architecture }}/app/sbin/gluster-exporter
-            asset_name: gluster-exporter-${{ matrix.architecture }}
-            asset_content_type: application
+      # - name: Upload binaries
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: binaries
+      #     path: ./out/linux_*/
+
+  # upload-binaries:
+  #   needs: build-push
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #       - name: Download math result for job 1
+  #         uses: actions/download-artifact@v4
+  #         with:
+  #           name: binaries
+
+
 
 
       #     - name: Upload ${{ matrix.architecture }} artifact
